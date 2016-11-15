@@ -1,39 +1,40 @@
 import React, { Component } from 'react';
-
-function Options(props) {
-    const defaultItem = [
-      <option disabled key='null' value='default'>
-        {props.defaultMessage}
-      </option>
-    ]; 
-
-    //const optionItems = props.options.map((option) => 
-    const optionItems = defaultItem.concat(["option1", "option2"].map((option) => 
-      <option key={option} value={option}>
-        {option}
-      </option>
-    ));
-
-    return (
-      <select defaultValue={props.value}>
-        {optionItems}
-      </select>
-    ); 
-}
+import Dropdown from '../Dropdown/component.js'
 
 class UserInp extends Component {
+  //props: options, defaultMessage, onSubmit
   constructor(props) {
-    //props should contain an option like 'options' that has drpodown options
     super(props); 
-    this.state = {value: 'default'}; 
+    this.state = {
+      selected: {}
+    }; 
+  }
+
+  onChange(event) {
+    this.setState(
+      {selected: event.target.value}
+    );
+  }
+
+  submit() {
+    this.props.onSubmit(this.state.selected);
   }
 
   render() {
-    return (
+    return (  
+
       <div className="userinp">
         <h1>This is the user input dropdown!</h1>
-        <Options options='' defaultMessage='Select an annotation' value={this.state.value}/>
+
+        <Dropdown 
+          options={this.props.options} 
+          defaultMessage={this.props.defaultMessage} 
+          onChange={this.onChange.bind(this)}
+        />
+
+        <button onClick={this.submit.bind(this)}>Submit!</button>
       </div>
+
     );
   }
 }; 
