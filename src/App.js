@@ -1,6 +1,5 @@
 import React, { Component } from 'react';
-//import logo from './logo.svg';
-import $ from 'jquery'
+import $ from 'jquery'; 
 import UserInp from './components/UserInp/component.js';
 import Graph from './components/Graph/component.js';
 import './App.css';
@@ -18,7 +17,9 @@ class App extends Component {
 		this.state = {
 			gwas: [], 
 			annotations: [],
-			selected_gwas: ''
+			snps: [],
+			selected_gwas: '',
+			posteriors: {},
 		}; 
 		this.populate_data();
 	}
@@ -60,18 +61,26 @@ class App extends Component {
 	}
 
 	get_weightings(trait_id) {
-		console.log('getting weights');
+		if (!trait_id) {
+			return
+		};
+
+		var data = {
+			trait: parseInt(trait_id)
+		}; 
+
 		$.ajax({
 			contentType: 'application/json',
 			url: WEIGHTS_URL, 
 			type: 'POST',
-			data: {
-				trait: trait_id,
-				//annotations: [],
-			},
+			data: JSON.stringify(data),
 			success: function(result) {
 				//generate d3 graph
-				console.log(result);
+				var posteriors = result.results.posteriors;
+				this.setState({posteriors: posteriors});
+			}.bind(this), 
+			error: function(err) {
+				console.log(err);
 			}
 		});
 	}
@@ -80,13 +89,14 @@ class App extends Component {
 		this.setState({
 			selected_gwas: trait_id
 		}); 
+		this.get_weightings(trait_id);
 	}
 
   	render() {
 	    return (
 	      <div className="App">
 	        <UserInp options={this.state.gwas} defaultMessage='Select an annotation' onSubmit={this.onSubmit.bind(this)}/>
-	      	<Graph snps={this.state.snps}/>
+	      	<Graph snps={this.state.snps} posteriors={this.state.posteriors}/>
 	      </div>
 	    );
 	}
