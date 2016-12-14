@@ -9,11 +9,17 @@ var SELECTORS = {
 class D3Scatterplot {
 
 	constructor(DOMelt, dataOptions, width, height) {
-		//dataOptions: data, xMax, yMax, xConvert, yConvert
+		//dataOptions: data, xMax, yMax, xConvert, yConvert, xTicks
 		this.DOMelt = DOMelt;
 		this.dataOptions = dataOptions
 		this.width = width;
 		this.height =  height;
+		this.margins = {
+			L: 30,
+			R: 10,
+			T: 10,
+			B: 20
+		}
 	}
 
 	create() {
@@ -22,40 +28,70 @@ class D3Scatterplot {
 		//Create an svg canvas, with specified width and height
 		var svg = d3.select(this.DOMelt).append('svg')
 			.attr('class', SELECTORS.PLOT)
-			.attr('width', this.width)
-			.attr('height', this.height)
+			.attr('width', this.width + this.margins.L + this.margins.R)
+			.attr('height', this.height + this.margins.T + this.margins.B)
 
 		//create a group of svg elts that will represent the points on the graph
 		svg.append('g')
 			.attr('class', SELECTORS.POINT_CONTAINER)
 
+		this.svg = svg;
 		this.update(this.dataOptions);
 	}
 
 	update(dataOptions) {
+		console.log('data', dataOptions.data);
 		this.dataOptions = dataOptions;
 		this._drawPoints(dataOptions)
 	}
 
 	_drawPoints(dataOptions) {
 		if (!dataOptions) {
-			console.log('returning');
 			return;
 		}
 		var scales = this._generateScales(dataOptions);
-		var xMap = scales[0];
-		var yMap = scales[1];
+		var xConvert = dataOptions.xConvert;
+		var yConvert = dataOptions.yConvert;
+
+		var xMap = function(data) {
+			return scales.xScale(xConvert(data))
+		}
+
+		var yMap = function(data) {
+			return scales.yScale(yConvert(data))
+		}
+
+		this._drawAxes(scales.xScale, scales.yScale, dataOptions);
 
 		var g = d3.select(this.DOMelt).selectAll('.' + SELECTORS.POINT_CONTAINER);
 
 		g.selectAll('.' + SELECTORS.POINT)
 			.data(dataOptions.data) //pairs up DOM elts to data
 		.enter().append('circle') //creates new elts if not node already
-			.attr('class', SELECTORS.POINT)
+			.attr('class', elt => SELECTORS.POINT + ' ' + elt.chr + ' ' + elt.position)
 			.attr("r", 3.5)
-			.attr("cx", xMap)
-			.attr("cy", yMap)
-			.style("fill", d =>'red')
+			.attr("cx", elt => xMap(elt) + this.margins.L)
+			.attr("cy", elt => yMap(elt) + this.margins.T)
+			.style("fill", elt => scales.colorScale(elt))
+	}
+
+	_drawAxes(xScale, yScale, dataOptions) {
+
+		var xVerticalOffset = this.height + this.margins.T;
+		var xAxis = this.svg.append('g')
+			.attr('transform', 'translate(' + this.margins.L + ',' + xVerticalOffset + ')')
+			.attr('class', 'axis')
+			.call(d3.axisBottom(xScale)
+				.tickValues(dataOptions.xTicks)
+				.tickFormat(dataOptions.xLabels)
+			)
+
+		var yAxis = this.svg.append('g')
+			.attr('transform', 'translate(' + this.margins.L + ', ' + this.margins.T + ')')
+			.attr('class', 'axis')
+			.call(d3.axisLeft(yScale)
+				.tickSizeOuter([0])
+		)
 	}
 
 	_generateScales(dataOptions) {
@@ -64,24 +100,31 @@ class D3Scatterplot {
 		var xConvert = dataOptions.xConvert;
 		var yConvert = dataOptions.yConvert; 
 
+		var verticalBuffer = yMax/100;
+
 		var xScale = d3.scaleLinear()
 			.range([0, this.width])
 			.domain([0, xMax])
 
-		var xMap = function(data) {
-			return xScale(xConvert(data))
-		}
-
 		var yScale = d3.scaleLinear()
 			.range([this.height, 0])
-			.domain([0, yMax])
+			.domain([-verticalBuffer, yMax + verticalBuffer])
 
-		var yMap = function(data) {
-			return yScale(yConvert(data))
+		var colorRange = d3.scaleLinear()
+			.range([0, 1])
+			.domain([1, 23])
+
+		var colorScale = function(x) {
+			return d3.interpolateRainbow(colorRange(x.chr))
 		}
 
-		return [xMap, yMap];
+		var scales = {
+			xScale: xScale, 
+			yScale: yScale,
+			colorScale: colorScale
+		}
 
+		return scales;
 	}
 }
 

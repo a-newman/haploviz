@@ -31,13 +31,15 @@ class GraphD3 extends Component {
   }
 
   getDataOptions(props) {
-    //dataOptions: data, xMax, yMax, xConvert, yConvert
+    //dataOptions: data, xMax, yMax, xConvert, yConvert, xTicks
     var dataOptions = {
       data: props.snps,
       xMax: props.maxXPos,
       yMax: 1,
       xConvert: this.get_snp_x_pos.bind(this),
-      yConvert: this.get_snp_y_pos.bind(this)
+      yConvert: this.get_snp_y_pos.bind(this),
+      xTicks: this.getXTickValues(),
+      xLabels: this.getXLabels(),
     }; 
 
     this.setState({
@@ -54,16 +56,31 @@ class GraphD3 extends Component {
     return snp.posterior;
   }
 
+  getXTickValues() {
+    if (!this.props.chrStartPos) {return}
+    return Object.values(this.props.chrStartPos);
+  }
+
+  getXLabels() {
+    if (!this.props.chrStartPos) {return}
+    var chromosomes = Object.getOwnPropertyNames(this.props.chrStartPos);
+    var xLabelMap = {};
+    
+    //reverse the chr and their start pos and store in xLabelMap
+    chromosomes.forEach(function(chr) {
+      xLabelMap[this.props.chrStartPos[chr]] = chr;
+    }.bind(this)); 
+
+    var xLabelFunc = function (xVal) {
+      return 'Chr ' + xLabelMap[xVal];
+    }; 
+    return xLabelFunc;
+  }
+
   render() {
 
-
-    var style = {
-      width: '960px',
-      height: '100px'
-    }; 
-
     return(
-      <div id={ID} style={style}></div>
+      <div id={ID}></div>
     ); 
   }
 }; 
