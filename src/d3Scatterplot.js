@@ -15,10 +15,10 @@ class D3Scatterplot {
 		this.width = width;
 		this.height =  height;
 		this.margins = {
-			L: 30,
+			L: 50,
 			R: 10,
 			T: 10,
-			B: 20
+			B: 30
 		}
 	}
 
@@ -85,13 +85,31 @@ class D3Scatterplot {
 				.tickValues(dataOptions.xTicks)
 				.tickFormat(dataOptions.xLabels)
 			)
+		//x-axis label
+		this.svg.append('text')
+			.attr('class', 'label')
+			.attr('x', this.width/2 + this.margins.L)
+			.attr('y', this.height + this.margins.T + this.margins.B)
+			.style('text-anchor', 'middle')
+			.style('font-color', 'black')
+			.text('SNPs');
 
 		var yAxis = this.svg.append('g')
 			.attr('transform', 'translate(' + this.margins.L + ', ' + this.margins.T + ')')
 			.attr('class', 'axis')
 			.call(d3.axisLeft(yScale)
 				.tickSizeOuter([0])
-		)
+			)
+
+		//y-axis label
+		this.svg.append('text')
+			.attr('class', 'label')
+			.attr('x', -this.margins.T - this.height/2)
+			.attr('y', this.margins.L/3)
+			.attr('transform', 'rotate(-90)')
+			.style('text-anchor', 'middle')
+			.style('font-color', 'black')
+			.text('PPAs');
 	}
 
 	_generateScales(dataOptions) {

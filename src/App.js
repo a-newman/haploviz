@@ -9,6 +9,7 @@ const GWAS_URL = BASE_URL + 'v0/traits';
 const WEIGHTS_URL = BASE_URL + 'v0/riviera';
 const ANNOTATIONS_URL = BASE_URL + 'v0/annotations';
 const SNPS_URL = BASE_URL + 'v0/snps';
+const SNP_ANNOTATION_URL_ENDING = '/annotations';
 
 class App extends Component {
 	
@@ -35,6 +36,28 @@ class App extends Component {
 				var data_obj = {}; 
 				data_obj[data_label] = data
 				this.setState(data_obj); 
+				if (data_label == 'snps') {
+					console.log('first snp', this.state.snps[0]);
+					this.get_snp_annotations(this.state.snps[0]);
+					console.log(this.state.snps[0]);
+				}
+			}.bind(this),
+			error: function(err) {
+				console.log(err)
+			}.bind(this)
+		});
+	}
+
+	set_SNP_annotations(snp, URL) {
+		$.ajax({
+			contentType: 'application/json',
+			url: URL,
+			type: 'GET',
+			success: function(result) {
+				//Popuplate the app's state with the result of the call 
+				var data = result.results; 
+				console.log('data', data);
+				snp.annotations = data; 
 			}.bind(this),
 			error: function(err) {
 				console.log(err)
@@ -52,6 +75,11 @@ class App extends Component {
 
 	get_snps() {
 		this.get_API_data('snps', SNPS_URL);
+	}
+
+	get_snp_annotations(snp) {
+		var url = SNPS_URL + '/' + snp.rsid + '/' + SNP_ANNOTATION_URL_ENDING;
+		this.set_SNP_annotations(snp, url);
 	}
 
 	populate_data() {

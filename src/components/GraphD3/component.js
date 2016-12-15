@@ -17,7 +17,7 @@ class GraphD3 extends Component {
 
   componentDidMount() {
     var DOMElt = '#' + ID; 
-    var plot = new D3Scatterplot(DOMElt, this.state.dataOptions, 960, 200); 
+    var plot = new D3Scatterplot(DOMElt, this.state.dataOptions, 1000, 400); 
     plot.create();
     this.setState({
       plot: plot
