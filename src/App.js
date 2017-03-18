@@ -36,11 +36,11 @@ class App extends Component {
 				var data_obj = {}; 
 				data_obj[data_label] = data
 				this.setState(data_obj); 
-				if (data_label == 'snps') {
-					console.log('first snp', this.state.snps[0]);
-					this.get_snp_annotations(this.state.snps[0]);
-					console.log(this.state.snps[0]);
-				}
+				// if (data_label == 'snps') {
+				// 	console.log('first snp', this.state.snps[0]);
+				// 	this.get_snp_annotations(this.state.snps[0]);
+				// 	console.log(this.state.snps[0]);
+				// }
 			}.bind(this),
 			error: function(err) {
 				console.log(err)
