@@ -19,7 +19,7 @@ class UserInp extends Component {
   }
 
   onChangeGwas(event) {
-    console.log("Gwas changed", event.target.value); 
+    console.log("Gwas changed", event.target.value.name); 
     this.setState(
       {selectedGwas: event.target.value}
     );
