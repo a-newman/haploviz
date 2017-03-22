@@ -2,25 +2,29 @@ import React, { Component } from 'react';
 import $ from 'jquery'; 
 import UserInp from './components/UserInp/component.js';
 import Graph from './components/Graph/component.js';
+import Riviera from './components/Riviera/component.js'; 
+import Output from './components/Output/component.js';
 import './App.css';
 
 const BASE_URL = 'http://128.52.171.248/'; 
-const GWAS_URL = BASE_URL + 'v0/traits'; 
+const GWAS_URL = BASE_URL + 'v0/gwasStudy'; 
 const WEIGHTS_URL = BASE_URL + 'v0/riviera';
 const ANNOTATIONS_URL = BASE_URL + 'v0/annotations';
 const SNPS_URL = BASE_URL + 'v0/snps';
+const PRIOR_URL = BASE_URL + 'v0/fineMapping/prior/basic'; 
+const POSTERIOR_URL = BASE_URL + 'v0/fineMapping/posterior/basic';
 const SNP_ANNOTATION_URL_ENDING = '/annotations';
 
 class App extends Component {
-	
+
 	constructor(props) {
 		super(props); 
 		this.state = {
 			gwas: [], 
 			annotations: [],
-			snps: [],
-			selected_gwas: '',
-			posteriors: {},
+			firstSubmit: false
+			//snps: [],
+			//posteriors: {},
 		}; 
 		this.populate_data();
 	}
@@ -36,11 +40,6 @@ class App extends Component {
 				var data_obj = {}; 
 				data_obj[data_label] = data
 				this.setState(data_obj); 
-				// if (data_label == 'snps') {
-				// 	console.log('first snp', this.state.snps[0]);
-				// 	this.get_snp_annotations(this.state.snps[0]);
-				// 	console.log(this.state.snps[0]);
-				// }
 			}.bind(this),
 			error: function(err) {
 				console.log(err)
@@ -73,9 +72,9 @@ class App extends Component {
 		this.get_API_data('annotations', ANNOTATIONS_URL)
 	}
 
-	get_snps() {
+	/*get_snps() {
 		this.get_API_data('snps', SNPS_URL);
-	}
+	}*/
 
 	get_snp_annotations(snp) {
 		var url = SNPS_URL + '/' + snp.rsid + '/' + SNP_ANNOTATION_URL_ENDING;
@@ -85,10 +84,43 @@ class App extends Component {
 	populate_data() {
 		this.get_gwas_options();
 		this.get_annotations(); 
-		this.get_snps();
+		//this.get_snps();
 	}
 
-	get_weightings(trait_id) {
+	getPriors() {
+		var data = {
+			"studyId": parseInt(this.state.selectedGwas)
+			//annotationIds: [this.state.selectedAnnotations]
+		}; 
+		console.log("data to post", data); 
+		return $.ajax({
+			contentType: 'application/json',
+			url: PRIOR_URL,
+			type: 'POST',
+			data: JSON.stringify(data),
+			error: function(err) {
+				console.log(err)
+			}.bind(this)
+		})
+	}
+
+	getPosteriors(priorData) {
+		console.log("priorData", priorData); 
+		return $.ajax({
+			contentType: 'application/json',
+			url: POSTERIOR_URL,
+			type: 'POST',
+			data: JSON.stringify(priorData),
+			success: function(result) {
+				console.log("data", result.results); 
+			}.bind(this),
+			error: function(err) {
+				console.log(err)
+			}.bind(this)
+		})
+	}
+
+	/*get_weightings(trait_id) {
 		if (!trait_id) {
 			return
 		};
@@ -111,20 +143,46 @@ class App extends Component {
 				console.log(err);
 			}
 		});
-	}
+	}*/
 
-	onSubmit(trait_id) {
+	onSubmit(userSelections) {
 		this.setState({
-			selected_gwas: trait_id
-		}); 
-		this.get_weightings(trait_id);
+			selectedGwas: userSelections.selectedGwas,
+			selectedAnnotations: userSelections.selectedAnnotations
+		}, function() {
+			console.log("state after submit", this.state);  
+			this.getPriors()
+			.done(function(response) {
+				this.getPosteriors(response.results); 
+			}.bind(this))
+			.done(function(response) {
+				this.setState({
+					firstSubmit: true
+				})
+			}.bind(this)) ;
+		});
+		//this.get_weightings(trait_id);
 	}
 
   	render() {
+  		var userInputComponent = <UserInp 
+	        	gwasOptions={this.state.gwas} 
+	        	defaultGwasMessage='Select a GWAS to study' 
+	        	annotationsOptions={this.state.annotations}
+	        	defaultAnnotationsMessage='Select a set of annotations'
+	        	onSubmit={this.onSubmit.bind(this)}
+	    />
+
 	    return (
 	      <div className="App">
-	        <UserInp options={this.state.gwas} defaultMessage='Select an annotation' onSubmit={this.onSubmit.bind(this)}/>
-	      	<Graph snps={this.state.snps} posteriors={this.state.posteriors}/>
+	        {userInputComponent}
+	        {this.state.firstSubmit && //shows the riviera component if the user has already submitted once
+	        	<div>
+	        		<Riviera/>
+	        		<Output/>
+	        	</div>
+	        }
+	      	{/*<Graph snps={this.state.snps} posteriors={this.state.posteriors}/> -->*/}
 	      </div>
 	    );
 	}
