@@ -7,7 +7,6 @@ class Riviera extends Component {
     trait
   */
 
-
   constructor(props) {
     super(props); 
     this.state = {}; 
@@ -17,11 +16,6 @@ class Riviera extends Component {
     console.log("Riviera got new props", newprops);
   }
 
-  run() {
-    
-  }
-
-  
   render() {
     return (  
 

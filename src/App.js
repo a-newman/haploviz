@@ -29,14 +29,14 @@ class App extends Component {
 
 	getGwas() {
 		APICalls.getGwasData()
-		.done(function(result) {
+		.then(function(result) {
 			this.setFetchedData(result, 'gwas');
 		}.bind(this))
 	}
 
 	getAnnotations() {
 		APICalls.getAnnotationsData()
-		.done(function(result) {
+		.then(function(result) {
 			this.setFetchedData(result, 'annotations');
 		}.bind(this))
 	}
@@ -53,7 +53,7 @@ class App extends Component {
 	getPosteriors(priorData) {
 		console.log("getting posteriors");
 		return APICalls.getPosteriors(priorData)
-		.done(function(result) {
+		.then(function(result) {
 			console.log("posterior data result", result);
 			this.setFetchedData(result, 'posteriors');
 		}.bind(this));
@@ -65,10 +65,10 @@ class App extends Component {
 			selectedAnnotations: userSelections.selectedAnnotations
 		}, function() {
 			this.getPriors()
-			.done(function (response) {
+			.then(function (response) {
 				return this.getPosteriors(response.results); 
 			}.bind(this))
-			.done(function(response) {
+			.then(function(response) {
 				this.setState({
 					firstSubmit: true,
 				})
