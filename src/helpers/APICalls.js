@@ -60,8 +60,7 @@ var APICalls = {
 		})
 	},
 
-	getPosteriors(priorData) {
-		console.log("priorData", priorData); 
+	getPosteriors(priorData) { 
 		return $.ajax({
 			contentType: 'application/json',
 			url: POSTERIOR_URL,

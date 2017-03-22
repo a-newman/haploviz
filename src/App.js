@@ -13,9 +13,9 @@ class App extends Component {
 		this.state = {
 			gwas: [], 
 			annotations: [],
-			firstSubmit: false
+			firstSubmit: false,
 			//snps: [],
-			//posteriors: {},
+			posteriors: {}
 		}; 
 		this.populate_data();
 	}
@@ -51,7 +51,12 @@ class App extends Component {
 	}
 
 	getPosteriors(priorData) {
-		return APICalls.getPosteriors(priorData);
+		console.log("getting posteriors");
+		return APICalls.getPosteriors(priorData)
+		.done(function(result) {
+			console.log("posterior data result", result);
+			this.setFetchedData(result, 'posteriors');
+		}.bind(this));
 	}
 
 	onSubmit(userSelections) {
@@ -60,10 +65,7 @@ class App extends Component {
 			selectedAnnotations: userSelections.selectedAnnotations
 		}, function() {
 			this.getPriors()
-			.done(function(response) {
-				this.setState({
-					traitId: response.results.traitId
-				});
+			.done(function (response) {
 				return this.getPosteriors(response.results); 
 			}.bind(this))
 			.done(function(response) {
@@ -72,7 +74,17 @@ class App extends Component {
 				})
 			}.bind(this)) ;
 		});
-		//this.get_weightings(trait_id);
+	}
+
+	onReRun() {
+		// it needs to put the prior data back into the prior function 
+		//get the prior data and put it back into posteriors. So you need to save the posterior data somewhere
+		var priors = {
+			studyId: this.state.posteriors.studyId,
+			weights: this.state.posteriors.weights,
+			priors: this.state.posteriors.posteriors
+		}
+		return this.getPosteriors(priors);
 	}
 
   	render() {
@@ -89,7 +101,10 @@ class App extends Component {
 	        {userInputComponent}
 	        {this.state.firstSubmit && //shows the riviera component if the user has already submitted once
 	        	<div>
-	        		<Riviera trait={this.state.traitId}/>
+	        		<Riviera 
+	        			trait={this.state.posteriors.traitId}
+	        			onReRun={this.onReRun.bind(this)}
+	        		/>
 	        		{/*<Output/>*/}
 	        	</div>
 	        }
