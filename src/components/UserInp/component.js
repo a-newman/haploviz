@@ -60,11 +60,11 @@ class UserInp extends Component {
           onChange={this.onChangeAnnotations.bind(this)}
         />
 
-        {/*<h>Select a set of annotation</h>
+        <h>Select a set of annotation</h>
         <MultipleSelect
           options={this.props.annotationsOptions}
           onChange={this.onChangeAnnotations.bind(this)}
-        />*/}
+        />
 
         <button onClick={this.submit.bind(this)}>Submit</button>
       </div>

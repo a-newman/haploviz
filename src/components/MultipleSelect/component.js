@@ -10,7 +10,7 @@ class MultipleSelect extends Component {
   constructor(props) {
     super(props); 
     this.state = {
-      selectedAnnotations: {}
+      crazy: false,
     }; 
   }
 
@@ -48,15 +48,9 @@ class MultipleSelect extends Component {
     ]
   }
 
-  onChangeAnnotations(event) {
-    console.log("Annotation changed", event.target.value); 
-    this.setState(
-      {selectedAnnotations: event.target.value}
-    );
-  }
-
   onChange(selection) {
-    console.log("selection changed", selection);
+    console.log("you clicked", selection);
+    this.setState({value: selection});
   }
 
   render() {
@@ -64,11 +58,12 @@ class MultipleSelect extends Component {
 
       <div className="annotations-select">
         <Select
+          multi
           name="annotations-select"
-          value="annotations"
-          options={this.getOptions()}
-          onChange={this.onChange}  
-          multi={true}      
+          value={this.state.value}
+          placeholder="Select annotations"
+          options={this.transformOptions(this.props.options)}
+          onChange={this.onChange.bind(this)}        
         />
       </div>
 
