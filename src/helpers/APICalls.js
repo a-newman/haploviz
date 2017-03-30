@@ -2,12 +2,13 @@ import $ from 'jquery';
 
 const BASE_URL = 'http://128.52.171.248/'; 
 const GWAS_URL = BASE_URL + 'v0/gwasStudy'; 
-const WEIGHTS_URL = BASE_URL + 'v0/riviera';
+//const WEIGHTS_URL = BASE_URL + 'v0/riviera';
 const ANNOTATIONS_URL = BASE_URL + 'v0/annotations';
 const SNPS_URL = BASE_URL + 'v0/snps';
 const PRIOR_URL = BASE_URL + 'v0/fineMapping/prior/basic'; 
 const POSTERIOR_URL = BASE_URL + 'v0/fineMapping/posterior/basic';
 const SNP_ANNOTATION_URL_ENDING = '/annotations';
+const TRAITS_URL = BASE_URL + 'v0/traits'; 
 
 var APICalls = {
 	/**
@@ -31,6 +32,10 @@ var APICalls = {
 
 	getAnnotationsData() {
 		return this.getAPIData(ANNOTATIONS_URL); 
+	},
+
+	getTraitsData() {
+		return this.getAPIData(TRAITS_URL); 
 	},
 
 	set_SNP_annotations(snp, URL) {

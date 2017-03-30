@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
-import Dropdown from '../Dropdown/component.js'
+import Dropdown from '../Dropdown/component.js';
+import MultipleSelect from '../MultipleSelect/component.js';
 
 class UserInp extends Component {
   /*props: 
@@ -8,6 +9,7 @@ class UserInp extends Component {
     annotationsOptions, 
     defeaultAnnotationsMessage,
     onSubmit
+    firstSubmit
   */
 
   constructor(props) {
@@ -37,10 +39,14 @@ class UserInp extends Component {
   }
 
   render() {
+
+    var heading = this.props.alreadySubmitted 
+      ? <h1>Refine your search</h1>
+      : <h1>Select a gwas and annotation to get started</h1>; 
     return (  
 
       <div className="userinp">
-        <h1>This is the user input dropdown!</h1>
+        {heading}
 
         <Dropdown 
           options={this.props.gwasOptions} 
@@ -53,6 +59,12 @@ class UserInp extends Component {
           defaultMessage={this.props.defaultAnnotationsMessage}
           onChange={this.onChangeAnnotations.bind(this)}
         />
+
+        {/*<h>Select a set of annotation</h>
+        <MultipleSelect
+          options={this.props.annotationsOptions}
+          onChange={this.onChangeAnnotations.bind(this)}
+        />*/}
 
         <button onClick={this.submit.bind(this)}>Submit</button>
       </div>

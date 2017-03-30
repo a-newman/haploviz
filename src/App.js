@@ -13,7 +13,7 @@ class App extends Component {
 		this.state = {
 			gwas: [], 
 			annotations: [],
-			firstSubmit: false,
+			alreadySubmitted: false,
 			//snps: [],
 			posteriors: {}
 		}; 
@@ -70,7 +70,7 @@ class App extends Component {
 			}.bind(this))
 			.then(function(response) {
 				this.setState({
-					firstSubmit: true,
+					alreadySubmitted: true,
 				})
 			}.bind(this)) ;
 		});
@@ -94,12 +94,13 @@ class App extends Component {
 	        	annotationsOptions={this.state.annotations}
 	        	defaultAnnotationsMessage='Select a set of annotations'
 	        	onSubmit={this.onSubmit.bind(this)}
+	        	alreadySubmitted={this.state.alreadySubmitted}
 	    />
 
 	    return (
 	      <div className="App">
 	        {userInputComponent}
-	        {this.state.firstSubmit && //shows the riviera component if the user has already submitted once
+	        {this.state.alreadySubmitted && //shows the riviera component if the user has already submitted once
 	        	<div>
 	        		<Riviera 
 	        			trait={this.state.posteriors.traitId}
