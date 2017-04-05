@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import $ from 'jquery'; 
 import UserInp from './components/UserInp/component.js';
 //import Graph from './components/Graph/component.js';
 import Riviera from './components/Riviera/component.js'; 
@@ -59,6 +60,37 @@ class App extends Component {
 		}.bind(this));
 	}
 
+	runOneIteration(priorData, posteriors) {
+		function oneRound(lastIterationData, posteriors) {
+			$.extend(posteriors, lastIterationData.posteriors);
+			console.log("intermediate next", lastIterationData.next);
+			console.log("intermediate posteriors", lastIterationData.posteriors);
+			if (lastIterationData.posteriors) {console.log("intermediate posteriors number", Object.keys(lastIterationData.posteriors).length)}
+			
+			if (lastIterationData.next === null) {
+				//set the  new val of posteriors
+				lastIterationData.posteriors = posteriors;
+				return $.Deferred().resolve(lastIterationData);
+			
+			} else {
+				//we need to do another round
+				return APICalls.getPosteriors(lastIterationData)
+					//and then run this recursive call again
+					.then(function (result) {
+						return oneRound(result.results, posteriors);
+					});
+			}
+		}
+		priorData.next = {
+			locus: 0
+		}
+
+		return APICalls.getPosteriors(priorData)
+			.then(function(result) {
+				return oneRound(result.results, {});
+			})
+	}
+
 	onSubmit(userSelections) {
 		this.setState({
 			selectedGwas: userSelections.selectedGwas,
@@ -66,13 +98,25 @@ class App extends Component {
 		}, function() {
 			this.getPriors()
 			.then(function (response) {
-				return this.getPosteriors(response.results); 
+				return this.runOneIteration(response.results);
 			}.bind(this))
-			.then(function(response) {
+			.then(function(firstRoundResults) {
+				console.log("First round weights", firstRoundResults.weights);
+				console.log("First round posteroirs", firstRoundResults.posteriors); 
+				console.log("First round posteriros size", Object.keys(firstRoundResults.posteriors).length);
+				firstRoundResults.next = {
+					locus: 0
+				}
+			})
+				/*(return this.runOneIteration(firstRoundResults);
+			}.bind(this))
+			.then(function (secondRoundResults) {
+				console.log("Second round weights", secondRoundResults.weights);
 				this.setState({
 					alreadySubmitted: true,
-				})
-			}.bind(this)) ;
+				}); 
+				console.log("final results", secondRoundResults);
+			}.bind(this)) ;*/
 		});
 	}
 

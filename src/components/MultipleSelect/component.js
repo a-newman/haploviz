@@ -14,12 +14,7 @@ class MultipleSelect extends Component {
     }; 
   }
 
-  componentWillReceiveProps(nextProps) {
-    console.log("MULTIPLESELECT GOT PROPS", nextProps);
-  }
-
   transformOptions(options) {
-    console.log("transforming options");
     var transformedOptions = options.map(function(option) {
       return {
         value: option.id,
@@ -49,7 +44,6 @@ class MultipleSelect extends Component {
   }
 
   onChange(selection) {
-    console.log("you clicked", selection);
     this.setState({value: selection});
   }
 

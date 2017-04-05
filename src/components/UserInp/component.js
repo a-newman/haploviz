@@ -54,12 +54,6 @@ class UserInp extends Component {
           onChange={this.onChangeGwas.bind(this)}
         />
 
-        <Dropdown 
-          options={this.props.annotationsOptions}
-          defaultMessage={this.props.defaultAnnotationsMessage}
-          onChange={this.onChangeAnnotations.bind(this)}
-        />
-
         <h>Select a set of annotation</h>
         <MultipleSelect
           options={this.props.annotationsOptions}
