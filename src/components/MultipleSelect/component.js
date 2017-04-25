@@ -44,7 +44,9 @@ class MultipleSelect extends Component {
   }
 
   onChange(selection) {
-    this.setState({value: selection});
+    this.setState({value: selection}, function() {
+      this.props.onChange(selection);
+    });
   }
 
   render() {

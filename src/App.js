@@ -14,6 +14,7 @@ class App extends Component {
 		this.state = {
 			gwas: [], 
 			annotations: [],
+			selectedAnnotations: [],
 			alreadySubmitted: false,
 			//snps: [],
 			posteriors: {}
@@ -48,7 +49,8 @@ class App extends Component {
 	}
 
 	getPriors() {
-		return APICalls.getPriors(this.state.selectedGwas);
+		var annotationIds = this.state.selectedAnnotations;
+		return APICalls.getPriors(this.state.selectedGwas, annotationIds);
 	}
 
 	getPosteriors(priorData) {
@@ -65,7 +67,7 @@ class App extends Component {
 			$.extend(posteriors, lastIterationData.posteriors);
 			console.log("intermediate next", lastIterationData.next);
 			console.log("intermediate posteriors", lastIterationData.posteriors);
-			if (lastIterationData.posteriors) {console.log("intermediate posteriors number", Object.keys(lastIterationData.posteriors).length)}
+			//if (lastIterationData.posteriors) {console.log("intermediate posteriors number", Object.keys(lastIterationData.posteriors).length)}
 			
 			if (lastIterationData.next === null) {
 				//set the  new val of posteriors
@@ -81,10 +83,10 @@ class App extends Component {
 					});
 			}
 		}
+
 		priorData.next = {
 			locus: 0
 		}
-
 		return APICalls.getPosteriors(priorData)
 			.then(function(result) {
 				return oneRound(result.results, {});
@@ -92,6 +94,7 @@ class App extends Component {
 	}
 
 	onSubmit(userSelections) {
+		console.log("Selected annotation at time of submit:", userSelections.selectedAnnotations);
 		this.setState({
 			selectedGwas: userSelections.selectedGwas,
 			selectedAnnotations: userSelections.selectedAnnotations
@@ -104,9 +107,9 @@ class App extends Component {
 				console.log("First round weights", firstRoundResults.weights);
 				console.log("First round posteroirs", firstRoundResults.posteriors); 
 				console.log("First round posteriros size", Object.keys(firstRoundResults.posteriors).length);
-				firstRoundResults.next = {
-					locus: 0
-				}
+				//firstRoundResults.next = {
+				//	locus: 0
+				//}
 			})
 				/*(return this.runOneIteration(firstRoundResults);
 			}.bind(this))
@@ -120,6 +123,7 @@ class App extends Component {
 		});
 	}
 
+	//TODO: fix this!!!!!
 	onReRun() {
 		// it needs to put the prior data back into the prior function 
 		//get the prior data and put it back into posteriors. So you need to save the posterior data somewhere

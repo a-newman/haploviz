@@ -16,21 +16,22 @@ class UserInp extends Component {
     super(props); 
     this.state = {
       selectedGwas: {},
-      selectedAnnotations: {}
+      selectedAnnotations: []
     }; 
   }
 
   onChangeGwas(event) {
-    console.log("Gwas changed", event.target.value.name); 
+    console.log("Gwas changed", event.target.value); 
     this.setState(
       {selectedGwas: event.target.value}
     );
   }
 
   onChangeAnnotations(event) {
-    console.log("Annotation changed", event.target.value); 
+    console.log("annotation changed");
+    console.log("Annotation changed", event); 
     this.setState(
-      {selectedAnnotations: event.target.value}
+      {selectedAnnotations: event}
     );
   }
 
