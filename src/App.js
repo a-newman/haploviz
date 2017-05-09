@@ -4,6 +4,7 @@ import UserInp from './components/UserInp/component.js';
 //import Graph from './components/Graph/component.js';
 import Riviera from './components/Riviera/component.js'; 
 //import Output from './components/Output/component.js';
+import BarChart from './components/BarChart/component.js';
 import APICalls from './helpers/APICalls.js'; 
 import './App.css';
 
@@ -104,22 +105,14 @@ class App extends Component {
 				return this.runOneIteration(response.results);
 			}.bind(this))
 			.then(function(firstRoundResults) {
-				console.log("First round weights", firstRoundResults.weights);
+				console.log("First round weights", firstRoundResults.latentVariables.weights);
 				console.log("First round posteroirs", firstRoundResults.posteriors); 
 				console.log("First round posteriros size", Object.keys(firstRoundResults.posteriors).length);
-				//firstRoundResults.next = {
-				//	locus: 0
-				//}
-			})
-				/*(return this.runOneIteration(firstRoundResults);
-			}.bind(this))
-			.then(function (secondRoundResults) {
-				console.log("Second round weights", secondRoundResults.weights);
 				this.setState({
 					alreadySubmitted: true,
-				}); 
-				console.log("final results", secondRoundResults);
-			}.bind(this)) ;*/
+					posteriors: firstRoundResults
+				});
+			}.bind(this))
 		});
 	}
 
@@ -154,7 +147,9 @@ class App extends Component {
 	        			trait={this.state.posteriors.traitId}
 	        			onReRun={this.onReRun.bind(this)}
 	        		/>
-	        		{/*<Output/>*/}
+	        		<BarChart
+						weights={this.state.posteriors.latentVariables.weights}
+	    			/>
 	        	</div>
 	        }
 	      	{/*<Graph snps={this.state.snps} posteriors={this.state.posteriors}/> -->*/}
