@@ -49,8 +49,6 @@ class D3BarChart {
 	}
 
 	update(topWeights) {
-		console.log("updating");
-		console.log("topWeights", topWeights);
 		if (!topWeights) {
 			return;
 		}

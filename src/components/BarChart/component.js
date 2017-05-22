@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import * as d3 from "d3";
 import D3BarChart from '../../d3BarChart.js'
 
 const ID = "d3-chart";
@@ -16,7 +15,6 @@ class BarChart extends Component {
 
   //create a new plot, add it to the DOM
   componentDidMount() {
-    console.log("Barchart has mounted");
     var DOMElt = '#' + ID; 
     var chart = new D3BarChart(DOMElt, 1000, 400); 
     chart.create();
@@ -27,7 +25,6 @@ class BarChart extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    console.log("got new props");
     var topAnnotations = this.getTopAnnotations(nextProps.weights);
     this.state.chart.update(topAnnotations);;
   }
@@ -41,7 +38,6 @@ class BarChart extends Component {
       return b.w - a.w;
     }
     
-    console.log("getting top annotations");
     var topN = [];
     for (var i in annotations) {
       var elt = annotations[i];

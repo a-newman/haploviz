@@ -1,6 +1,6 @@
 import * as d3 from "d3";
 
-var SELECTORS = {
+const SELECTORS = {
 	PLOT: 'd3-plot', 
 	POINT_CONTAINER: 'd3-point-container',
 	POINT: 'd3-point'
@@ -40,9 +40,23 @@ class D3Scatterplot {
 	}
 
 	update(dataOptions) {
-		console.log('data', dataOptions.data);
+		console.log('data in the scatterplot', dataOptions.data);
 		this.dataOptions = dataOptions;
-		this._drawPoints(dataOptions)
+		this._setScales();
+		this._drawPoints(dataOptions);
+		this._drawAxes(this.xScale, this.yScale, dataOptions);
+	}
+
+	_setScales() {
+		//var verticalBuffer = yMax/100;
+
+		this.xScale = d3.scaleLinear()
+			.range([0, this.width])
+			.domain(this._getXRange());
+
+		this.yScale = d3.scaleLinear()
+			.range([this.height, 0])
+			.domain(this._getYRange());
 	}
 
 	_drawPoints(dataOptions) {
@@ -53,26 +67,23 @@ class D3Scatterplot {
 		var xConvert = dataOptions.xConvert;
 		var yConvert = dataOptions.yConvert;
 
-		var xMap = function(data) {
-			return scales.xScale(xConvert(data))
-		}
+		var xMap = (snp) => this.xScale(this.dataOptions.xConvert(snp));
 
-		var yMap = function(data) {
-			return scales.yScale(yConvert(data))
-		}
+		var yMap = (snp) => this.yScale(this.dataOptions.yConvert(snp));
 
-		this._drawAxes(scales.xScale, scales.yScale, dataOptions);
+		//this._drawAxes(scales.xScale, scales.yScale, dataOptions);
 
 		var g = d3.select(this.DOMelt).selectAll('.' + SELECTORS.POINT_CONTAINER);
 
 		g.selectAll('.' + SELECTORS.POINT)
 			.data(dataOptions.data) //pairs up DOM elts to data
 		.enter().append('circle') //creates new elts if not node already
-			.attr('class', elt => SELECTORS.POINT + ' ' + elt.chr + ' ' + elt.position)
+			.attr('class', elt => SELECTORS.POINT + ' ' + elt.rsid)
 			.attr("r", 3.5)
 			.attr("cx", elt => xMap(elt) + this.margins.L)
 			.attr("cy", elt => yMap(elt) + this.margins.T)
-			.style("fill", elt => scales.colorScale(elt))
+			.style("fill", "red");
+			//.style("fill", elt => scales.colorScale(elt))
 	}
 
 	_drawAxes(xScale, yScale, dataOptions) {
@@ -82,9 +93,9 @@ class D3Scatterplot {
 			.attr('transform', 'translate(' + this.margins.L + ',' + xVerticalOffset + ')')
 			.attr('class', 'axis')
 			.call(d3.axisBottom(xScale)
-				.tickValues(dataOptions.xTicks)
-				.tickFormat(dataOptions.xLabels)
+				.ticks(this.width/70)
 			)
+
 		//x-axis label
 		this.svg.append('text')
 			.attr('class', 'label')
@@ -92,7 +103,7 @@ class D3Scatterplot {
 			.attr('y', this.height + this.margins.T + this.margins.B)
 			.style('text-anchor', 'middle')
 			.style('font-color', 'black')
-			.text('SNPs');
+			.text(dataOptions.xLabel);
 
 		var yAxis = this.svg.append('g')
 			.attr('transform', 'translate(' + this.margins.L + ', ' + this.margins.T + ')')
@@ -105,11 +116,11 @@ class D3Scatterplot {
 		this.svg.append('text')
 			.attr('class', 'label')
 			.attr('x', -this.margins.T - this.height/2)
-			.attr('y', this.margins.L/3)
+			.attr('y', this.margins.L/7)
 			.attr('transform', 'rotate(-90)')
 			.style('text-anchor', 'middle')
 			.style('font-color', 'black')
-			.text('PPAs');
+			.text(dataOptions.yLabel);
 	}
 
 	_generateScales(dataOptions) {
@@ -143,6 +154,38 @@ class D3Scatterplot {
 		}
 
 		return scales;
+	}
+
+	_getRange(conversionFunction) {
+		var data = this.dataOptions.data;
+		var max = null;
+		var min = null; 
+
+		for (var i in data) {
+			var item = data[i]; 
+			var value = conversionFunction(item);
+			if (min == null || value < min) {
+				min = value;
+			}
+
+			if (max == null || value > max) {
+				max = value;
+			}
+		}
+
+		return [min, max];
+	}
+
+	/**
+	 * Gets the min and max x value, using dataOptions.xConvert
+	 * Returns an array [min, max]
+	*/
+	_getXRange() {
+		return this._getRange(this.dataOptions.xConvert);
+	}
+
+	_getYRange() {
+		return this._getRange(this.dataOptions.yConvert);
 	}
 }
 

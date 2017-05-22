@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import $ from 'jquery'; 
+import Loading from 'react-loading';
 import UserInp from './components/UserInp/component.js';
-//import Graph from './components/Graph/component.js';
+import Graph from './components/Graph/component.js';
 import Riviera from './components/Riviera/component.js'; 
 //import Output from './components/Output/component.js';
 import BarChart from './components/BarChart/component.js';
@@ -16,9 +17,10 @@ class App extends Component {
 			gwas: [], 
 			annotations: [],
 			selectedAnnotations: [],
-			alreadySubmitted: false,
+			resultsReady: false,
 			//snps: [],
-			posteriors: {}
+			posteriorData: {}, 
+			priorData: {}
 		}; 
 		this.populate_data();
 	}
@@ -102,6 +104,9 @@ class App extends Component {
 		}, function() {
 			this.getPriors()
 			.then(function (response) {
+				this.setState({
+					priorData: response.results
+				});
 				return this.runOneIteration(response.results);
 			}.bind(this))
 			.then(function(firstRoundResults) {
@@ -109,8 +114,8 @@ class App extends Component {
 				console.log("First round posteroirs", firstRoundResults.posteriors); 
 				console.log("First round posteriros size", Object.keys(firstRoundResults.posteriors).length);
 				this.setState({
-					alreadySubmitted: true,
-					posteriors: firstRoundResults
+					resultsReady: true,
+					posteriorData: firstRoundResults
 				});
 			}.bind(this))
 		});
@@ -135,25 +140,33 @@ class App extends Component {
 	        	annotationsOptions={this.state.annotations}
 	        	defaultAnnotationsMessage='Select a set of annotations'
 	        	onSubmit={this.onSubmit.bind(this)}
-	        	alreadySubmitted={this.state.alreadySubmitted}
+	        	alreadySubmitted={this.state.resultsReady}
 	    />
 
+	    var componentToShow = 
+		    	this.state.resultsReady ? (
+		    		<div>
+					    <BarChart
+							weights={this.state.posteriorData.latentVariables.weights}
+					    />
+					</div>
+		    	) : (
+		    		<div>
+		    			<h2>Please wait while we do some calculations...</h2>
+		    			<Loading type="spin" color="grey" height="100px" width="100px"/>
+		    		</div>
+		    	)
+
 	    return (
-	      <div className="App">
-	        {userInputComponent}
-	        {this.state.alreadySubmitted && //shows the riviera component if the user has already submitted once
-	        	<div>
-	        		<Riviera 
-	        			trait={this.state.posteriors.traitId}
-	        			onReRun={this.onReRun.bind(this)}
-	        		/>
-	        		<BarChart
-						weights={this.state.posteriors.latentVariables.weights}
-	    			/>
-	        	</div>
-	        }
-	      	{/*<Graph snps={this.state.snps} posteriors={this.state.posteriors}/> -->*/}
-	      </div>
+	    	<div className="App">
+	        	{userInputComponent}
+	        	{componentToShow}
+	        	<Graph 
+					posteriorData={this.state.posteriorData}
+					priorData={this.state.priorData}
+				/>
+	       	</div>
+
 	    );
 	}
 }

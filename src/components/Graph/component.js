@@ -1,125 +1,204 @@
+import $ from 'jquery';
+
 import React, { Component } from 'react';
 import GraphD3 from '../GraphD3/component.js'
 import * as d3 from "d3";
+import APICalls from '../../helpers/APICalls.js'; 
+import Dropdown from '../Dropdown/component.js';
 
 class Graph extends Component {
-  //props: snps, posteriors
+  SNPsCache = {};
+
+
+  //props: posteriors = mapping
   constructor(props) {
-    super(props); 
-    this.state = {}; 
-  }
+    super(props);
 
-  //when the component receives new props (i.e. updated snp data)
-  componentWillReceiveProps(nextProps) {
-    this.set_snp_posteriors(nextProps.snps, nextProps.posteriors);
-
-    var chs = this.sort_snps_by_chromosome(nextProps.snps); 
-    var lens = this.get_chromosome_lengths(chs); 
-    this.get_chromosome_start(lens);
-  }
-
-  sort_snps_by_chromosome(snps) {
-    if (snps.length === 0) {
-      return;
+    this.state = {
+      graphMounted: false
     }
 
-    var chs = {} //obj to store list of chromsomes by property 
+    APICalls.getSNPData()
+      .then(function(result) {
+        this.setState({
+          locationMap: this.getLocationMap(result.results),
+          SNPsByLocus: {},
+        });
+      }.bind(this));
+  }
 
-    snps.forEach(function(snp) {
-      var chr = snp.chr.toString(); 
+  //when component gets new props (right now just the posteriors), 
+  //get the highest probability snp. Then get all snps at that locus. 
+  // these are the SNPS to graph, which we pass in 
 
-      if (chs.hasOwnProperty(chr)) {
-        //add the current snp to the array for that chr
-        chs[chr].push(snp)
-      } else {
-        //create a new entry and initialize an array with the current snp
-        chs[chr] = [snp];
-      }
-    }); 
+  componentWillReceiveProps(nextProps) {
+    if (this.isEmpty(nextProps.posteriorData)) {return;}
+
+    var SNPMap = nextProps.posteriorData.posteriors;
+    //for posteriors, we care about "pobability"
+    var SNPList = this.transformSNPs(SNPMap);
+    var maxSNP = this.maxProbabilitySNP(SNPList, "probability");
+    //now, get all SNPs at that locus
+    var locusToGraph = maxSNP.locus;
+    var byLocus = this.sortSNPsByLocus(SNPList);
+    var SNPsAtLocus = byLocus[locusToGraph];
+    var dropdownOptions = this.getDropdownOptions(byLocus);
 
     this.setState({
-      chs: chs
+      locusToGraph: locusToGraph,
+      SNPsToGraph: SNPsAtLocus,
+      maxSNP: maxSNP,
+      graphMounted: true,
+      SNPsByLocus: byLocus,
+      options: dropdownOptions
     });
-    return chs;
   }
 
-  get_chromosome_lengths(chs) {
-    //chs: a dictionary mapping chromsome number to a list of snps in that chr, as produced by sort_snps_by_chromsome
-    var chr_len = {}; 
+  /**
+   * SNPMap: map mapping RSID to features of a SNP
+   * field: the field we are filtering on 
+   * returns: the object in SNPMap for which obj[field] is greatest
+   */
+  maxProbabilitySNP(SNPList, field) {
+    var maxSNP = {};
+    var maxProb = 0;
 
-    //Loop over each chromosome
-    for (var chr in chs) {
-
-      //The current property is not a direct property of chs
-      if (!chs.hasOwnProperty(chr)) {
-        continue;
+    SNPList.forEach(function(snp) {
+      if (snp[field] > maxProb) {
+        //reassign maxSNP and maxProb
+          maxProb = snp[field];
+          maxSNP = snp;
       }
-
-      var extent;
-      var snps = chs[chr];
-      extent = d3.extent(snps, snp => snp.position); //form min, max
-      chr_len[chr] = extent[1];
-    }; 
-
-    this.setState({
-      chr_len: chr_len
-    }); 
-
-    return chr_len;
-  }
-
-  get_chromosome_start(chs_len) {
-    //loop through the chromosomes, sum up their lengths to get the starting pos of the chromosome
-    var chr_start_pos = {}; 
-    var chromosomes = Object.getOwnPropertyNames(chs_len);
-    var total_x = 0;
-    var cur_len = 0;
-    
-    chromosomes.sort(function(a, b) {
-      if (parseInt(a) > parseInt(b)) {
-        return 1;
-      } else {
-        return -1
-      }
-    });
-    
-    chromosomes.forEach(function(elt, i) {
-      //Get the length of the current chromosome and add it to the total 
-      if (chs_len.hasOwnProperty(elt)) {
-        chr_start_pos[elt] = total_x; 
-        total_x = total_x + chs_len[elt]
-      }
-    }); 
-
-    this.setState({
-      chr_start_pos: chr_start_pos, 
-      max_x_pos: total_x
-    }); 
-
-    return chr_start_pos;
-  }
-
-  set_snp_posteriors(snps, posteriors) {
-    if (!(snps && posteriors)) {return}
-
-    snps.forEach(function(snp) {
-      snp.posterior = posteriors[snp.rsid];
-    }); 
-
-    this.setState({
-      snps: this.props.snps
     })
+      
+    return maxSNP;
+  }
+
+  /**
+  */
+  sortSNPsByLocus(SNPList) {
+    var byLocus = {};
+
+    SNPList.forEach(function(snp) {
+      var locus = snp.locus;
+      if (byLocus[locus]) {
+        byLocus[locus].push(snp);
+      } else {
+        byLocus[locus] = [snp];
+      }
+    }); 
+
+    return byLocus;
+  }
+
+  transformSNPs(SNPMap) {
+    var listing = [];
+
+    for (var RSID in SNPMap) {
+      if (!SNPMap.hasOwnProperty(RSID)) {continue;}
+
+      var SNP = SNPMap[RSID];
+      var newSNP = {
+        position: this.state.locationMap[RSID], //add in the position 
+        rsid: RSID //and the RSID as a field instead of a key 
+      }
+
+      $.extend(newSNP, SNP); //add to newSNP all the properties of the old SNP
+
+      listing.push(newSNP);
+    }
+
+    return listing;
+  }
+
+
+
+/**
+ *Gets all the SNPs at locus locus
+ * returns a mapping RSID => SNP with only and all SNPS at locus locus 
+ */
+  getSNPsAtLocus(locus) {
+    return this.state.SNPsByLocus[locus];
+  }
+
+  graphNewLocus(onChangeEvent) {
+    console.log("locus changed", event.target.value);
+    var locus = event.target.value;
+    var data = this.getSNPsAtLocus(locus);
+    console.log("data to display ", data);
+    this.setState({
+      locusToGraph: locus,
+      SNPsToGraph: data
+    })
+  }
+
+  getDropdownOptions(SNPsByLocus) {
+    var options = []; 
+
+    for (var locus in SNPsByLocus) {
+
+      if (!SNPsByLocus.hasOwnProperty(locus)) {continue;}
+
+      options.push({
+          id: locus,
+          name: locus.toString()
+      }); 
+    }
+
+    return options;
+  }
+
+  /**
+   * Create a mapping RSID => position
+   */
+  getLocationMap(SNPs) {
+    var mapping = {};
+    for (var i in SNPs) {
+      var SNP = SNPs[i];
+      var RSID = SNP.rsid;
+      var position = SNP.position;
+      mapping[RSID] = position;
+    }
+    return mapping;
+  }
+
+  isEmpty(obj) {
+    for(var key in obj) {
+        if(obj.hasOwnProperty(key))
+            return false;
+    }
+    return true;
   }
 
   render() {
 
     return (  
 
-      <GraphD3 
-        snps={this.state.snps} 
-        chrStartPos={this.state.chr_start_pos}
-        maxXPos={this.state.max_x_pos}
-      />
+      <div>
+        {this.state.graphMounted &&
+          <div>
+            <h1>Locus to graph: {this.state.locusToGraph}</h1>
+            <h1>Max SNP probability: {this.state.maxSNP.probability}</h1>
+            <Dropdown
+              options={this.state.options}
+              defaultMessage={"Select a locus to view"} 
+              onChange={this.graphNewLocus.bind(this)}
+            />
+            <GraphD3
+              SNPsToGraph={this.state.SNPsToGraph}
+              xLabel={"SNPs at locus " + this.state.locusToGraph}
+              yLabel="Priors"
+              yField= "prior"
+            />
+            <GraphD3
+              SNPsToGraph={this.state.SNPsToGraph}
+              xLabel = {"SNPs at locus " + this.state.locusToGraph}
+              yLabel = "PPAs"
+              yField = "probability"
+            />
+          </div>
+        }
+      </div>
 
     );
   }

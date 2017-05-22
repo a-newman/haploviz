@@ -38,6 +38,10 @@ var APICalls = {
 		return this.getAPIData(TRAITS_URL); 
 	},
 
+	getSNPData() {
+		return this.getAPIData(SNPS_URL);
+	},
+
 	set_SNP_annotations(snp, URL) {
 		return $.ajax({
 			contentType: 'application/json',

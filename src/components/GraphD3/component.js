@@ -2,85 +2,61 @@ import React, { Component } from 'react';
 import * as d3 from "d3";
 import D3Scatterplot from '../../d3Scatterplot.js'
 
-const ID = 'scatterplot';
+const DIMENSIONS = {
+  WIDTH: 700,
+  HEIGHT: 300
+}
 
 class GraphD3 extends Component {
-  //What props do we need? the snps and the cumulative chr.len 
-  //props: snps, chrStartPos, maxXPos
+  //props: xLabel, yLabel, SNPsToGraph
   constructor(props) {
     super(props); 
     this.state = {
       dataOptions: '', 
-      plot: null
+      plot: null,
+      id: "scatterplot-" + this.props.yField,
     }; 
   }
 
+
+  //What data do we need here? just the snps to plot 
+
   componentDidMount() {
-    var DOMElt = '#' + ID; 
-    var plot = new D3Scatterplot(DOMElt, this.state.dataOptions, 1000, 400); 
+    var DOMElt = '#' + this.state.id; 
+    var plot = new D3Scatterplot(DOMElt, this.state.dataOptions, DIMENSIONS.WIDTH, DIMENSIONS.HEIGHT); 
     plot.create();
     this.setState({
       plot: plot
-    });
+    }, function() {
+      this._updatePlot(this.props);
+    }.bind(this));
   }
 
   componentWillReceiveProps(nextProps) {
-    this.getDataOptions(nextProps);
-
-    this.state.plot.update(this.state.dataOptions);
+    console.log("nextProps", nextProps);
+    this._updatePlot(nextProps);
   }
 
-  getDataOptions(props) {
-    //dataOptions: data, xMax, yMax, xConvert, yConvert, xTicks
+  _updatePlot(props) {
+    console.log("props.yField", props.yField)
     var dataOptions = {
-      data: props.snps,
-      xMax: props.maxXPos,
-      yMax: 1,
-      xConvert: this.get_snp_x_pos.bind(this),
-      yConvert: this.get_snp_y_pos.bind(this),
-      xTicks: this.getXTickValues(),
-      xLabels: this.getXLabels(),
+      data: props.SNPsToGraph,
+      xConvert: (snp) => snp.position, //maps a SNP to its position 
+      yConvert: (snp) => snp[props.yField], //maps a SNP to the probabilty metric we're using
+      xLabel: this.props.xLabel,
+      yLabel: this.props.yLabel
+      //xTicks: this.getXTickValues(),
+      //xLabels: this.getXLabels(),
     }; 
+    console.log("dataOptions", dataOptions);
 
-    this.setState({
-      dataOptions: dataOptions
-    });
-  }
-
-  get_snp_x_pos(snp) {
-    var x_0 = this.props.chrStartPos[snp.chr];
-    return x_0 + snp.position;
-  }
-
-  get_snp_y_pos(snp) {
-    return snp.posterior;
-  }
-
-  getXTickValues() {
-    if (!this.props.chrStartPos) {return}
-    return Object.values(this.props.chrStartPos);
-  }
-
-  getXLabels() {
-    if (!this.props.chrStartPos) {return}
-    var chromosomes = Object.getOwnPropertyNames(this.props.chrStartPos);
-    var xLabelMap = {};
-    
-    //reverse the chr and their start pos and store in xLabelMap
-    chromosomes.forEach(function(chr) {
-      xLabelMap[this.props.chrStartPos[chr]] = chr;
-    }.bind(this)); 
-
-    var xLabelFunc = function (xVal) {
-      return 'Chr ' + xLabelMap[xVal];
-    }; 
-    return xLabelFunc;
+    this.state.plot.update(dataOptions);
   }
 
   render() {
 
     return(
-      <div id={ID}></div>
+      <div id={this.state.id}></div>
     ); 
   }
 }; 
