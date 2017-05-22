@@ -69,7 +69,7 @@ class D3BarChart {
 
 			bar.append("text")
 				.attr("transform", function(d, i) {return "translate(0," + BAR_HEIGHT/2 + ")"; })
-				.text(function(d) {return d.name + " (Tissue type: " + d.tissue + ")";});
+				.text(function(d) {return d.name});
 	}
 }
 

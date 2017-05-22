@@ -82,6 +82,14 @@ class D3Scatterplot {
 
 		var yMap = (snp) => this.yScale(this.dataOptions.yConvert(snp));
 
+		var tooltip = d3.select(this.DOMelt)
+			.append("div")
+			.style("position", "absolute")
+			.style("z-index", "10")
+			.style("background-color", "grey")
+			.style("border-style", "solid")
+			.style("visibility", "hidden")
+
 		//this._drawAxes(scales.xScale, scales.yScale, dataOptions);
 
 		var g = d3.select(this.DOMelt).selectAll('.' + SELECTORS.POINT_CONTAINER);
@@ -93,7 +101,19 @@ class D3Scatterplot {
 			.attr("r", 3.5)
 			.attr("cx", elt => xMap(elt) + this.margins.L)
 			.attr("cy", elt => yMap(elt) + this.margins.T)
-			.style("fill", "red");
+			.style("fill", "red")
+			//set up the tooltip
+			.on("mouseover", function(data) {
+				console.log(data);
+				return tooltip.style("visibility", "visible")
+				.text(
+					"RSID: " + data.rsid + "\n" + 
+					"Probability: " + data.probability + "\n" + 
+					"Position: " + data.position
+				);
+			})
+			.on("mousemove", function(){return tooltip.style("top", (event.pageY-10)+"px").style("left",(event.pageX+10)+"px");})
+			.on("mouseout", function(){return tooltip.style("visibility", "hidden");});
 			//.style("fill", elt => scales.colorScale(elt))
 	}
 

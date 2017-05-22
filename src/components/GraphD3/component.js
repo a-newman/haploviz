@@ -28,20 +28,21 @@ class GraphD3 extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
+    console.log("receiving props", nextProps);
     this.updatePlot(nextProps);
   }
 
   updatePlot(props) {
-    if (!this.state.plot) {
-      return;
+    console.log("updating plot");
+    if (this.state.plot) {
+      this.state.plot.destroy();
     }
     
-    this.state.plot.destroy();
-
     this.setPlot(props);
   }
 
   setPlot(props) {
+    console.log("setting posteriors plot");
 
     if (!props.SNPsToGraph || this.isEmpty(props.SNPsToGraph)) {
       return;

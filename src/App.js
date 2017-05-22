@@ -53,7 +53,9 @@ class App extends Component {
 	}
 
 	getPriors() {
-		var annotationIds = this.state.selectedAnnotations;
+		var annotationIds = this.state.selectedAnnotations.map(function(annotation) {
+			return annotation.value;
+		})
 		return APICalls.getPriors(this.state.selectedGwas, annotationIds);
 	}
 
@@ -99,6 +101,7 @@ class App extends Component {
 
 	onSubmit(userSelections) {
 		console.log("Selected annotation at time of submit:", userSelections.selectedAnnotations);
+
 		this.setState({
 			inputSubmitted: true,
 			selectedGwas: userSelections.selectedGwas,
