@@ -37,7 +37,7 @@ class GraphD3 extends Component {
     if (this.state.plot) {
       this.state.plot.destroy();
     }
-    
+
     this.setPlot(props);
   }
 
@@ -51,7 +51,7 @@ class GraphD3 extends Component {
     var dataOptions = {
       data: props.SNPsToGraph,
       xConvert: (snp) => snp.position, //maps a SNP to its position 
-      yConvert: (snp) => snp[props.yField], //maps a SNP to the probabilty metric we're using
+      yConvert: props.yFunc, //maps a SNP to the probabilty metric we're using
       xLabel: this.props.xLabel,
       yLabel: this.props.yLabel
       //xTicks: this.getXTickValues(),

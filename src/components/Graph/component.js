@@ -200,6 +200,14 @@ class Graph extends Component {
 
   render() {
 
+    var probabilityYMapping = (snp) => snp.probability;
+    
+    var logProbability = function(snp) {
+      var p = snp.pValue;
+      var log = Math.log(p)/Math.log(10);
+      return -log;
+    }
+
     return (  
 
       <div>
@@ -215,13 +223,19 @@ class Graph extends Component {
               SNPsToGraph={this.state.priorsToGraph}
               xLabel={"SNPs at locus " + this.state.locusToGraph}
               yLabel="Priors"
-              yField= "probability"
+              yFunc= {probabilityYMapping}
             />
             <GraphD3
               SNPsToGraph={this.state.posteriorsToGraph}
               xLabel = {"SNPs at locus " + this.state.locusToGraph}
               yLabel = "PPAs"
-              yField = "probability"
+              yFunc = {probabilityYMapping}
+            />
+            <GraphD3
+              SNPsToGraph = {this.state.posteriorsToGraph}
+              xLabel = {"SNPs at locus " + this.state.locusToGraph}
+              yLabel = "-logP"
+              yFunc = {logProbability}
             />
           </div>
         }
