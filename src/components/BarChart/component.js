@@ -55,6 +55,7 @@ class BarChart extends Component {
     }
     
     topN.sort(comparator);
+    console.log("topN ", topN);
     return topN;
  }
 

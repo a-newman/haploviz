@@ -1,4 +1,5 @@
 import * as d3 from "d3";
+import $ from 'jquery';
 
 const SELECTORS = {
 	PLOT: 'd3-plot', 
@@ -8,10 +9,9 @@ const SELECTORS = {
 
 class D3Scatterplot {
 
-	constructor(DOMelt, dataOptions, width, height) {
+	constructor(DOMelt, width, height) {
 		//dataOptions: data, xMax, yMax, xConvert, yConvert, xTicks
 		this.DOMelt = DOMelt;
-		this.dataOptions = dataOptions
 		this.width = width;
 		this.height =  height;
 		this.margins = {
@@ -20,12 +20,20 @@ class D3Scatterplot {
 			T: 10,
 			B: 30
 		}
+
+		this.create();
 	}
 
 	create() {
 		//Construct the chart given the data passed in earlier
 
 		//Create an svg canvas, with specified width and height
+		var svg = this.getNewSVG();
+
+		this.svg = svg;
+	}
+
+	getNewSVG() {
 		var svg = d3.select(this.DOMelt).append('svg')
 			.attr('class', SELECTORS.PLOT)
 			.attr('width', this.width + this.margins.L + this.margins.R)
@@ -35,8 +43,11 @@ class D3Scatterplot {
 		svg.append('g')
 			.attr('class', SELECTORS.POINT_CONTAINER)
 
-		this.svg = svg;
-		this.update(this.dataOptions);
+		return svg;
+	}
+
+	destroy() {
+		$(this.DOMelt + " svg").remove();
 	}
 
 	update(dataOptions) {
@@ -116,7 +127,7 @@ class D3Scatterplot {
 		this.svg.append('text')
 			.attr('class', 'label')
 			.attr('x', -this.margins.T - this.height/2)
-			.attr('y', this.margins.L/7)
+			.attr('y', this.margins.L/4)
 			.attr('transform', 'rotate(-90)')
 			.style('text-anchor', 'middle')
 			.style('font-color', 'black')

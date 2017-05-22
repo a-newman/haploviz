@@ -12,33 +12,41 @@ class GraphD3 extends Component {
   constructor(props) {
     super(props); 
     this.state = {
+      initialProps: props,
       dataOptions: '', 
       plot: null,
-      id: "scatterplot-" + this.props.yField,
+      id: "scatterplot-" + this.props.yLabel,
     }; 
+
   }
 
 
   //What data do we need here? just the snps to plot 
 
   componentDidMount() {
-    var DOMElt = '#' + this.state.id; 
-    var plot = new D3Scatterplot(DOMElt, this.state.dataOptions, DIMENSIONS.WIDTH, DIMENSIONS.HEIGHT); 
-    plot.create();
-    this.setState({
-      plot: plot
-    }, function() {
-      this._updatePlot(this.props);
-    }.bind(this));
+    this.setPlot(this.state.initialProps);
   }
 
   componentWillReceiveProps(nextProps) {
-    console.log("nextProps", nextProps);
-    this._updatePlot(nextProps);
+    this.updatePlot(nextProps);
   }
 
-  _updatePlot(props) {
-    console.log("props.yField", props.yField)
+  updatePlot(props) {
+    if (!this.state.plot) {
+      return;
+    }
+    
+    this.state.plot.destroy();
+
+    this.setPlot(props);
+  }
+
+  setPlot(props) {
+
+    if (!props.SNPsToGraph || this.isEmpty(props.SNPsToGraph)) {
+      return;
+    }
+
     var dataOptions = {
       data: props.SNPsToGraph,
       xConvert: (snp) => snp.position, //maps a SNP to its position 
@@ -48,9 +56,22 @@ class GraphD3 extends Component {
       //xTicks: this.getXTickValues(),
       //xLabels: this.getXLabels(),
     }; 
-    console.log("dataOptions", dataOptions);
+    
+    var DOMElt = '#' + this.state.id; 
+    var plot = new D3Scatterplot(DOMElt, DIMENSIONS.WIDTH, DIMENSIONS.HEIGHT);  
+    plot.update(dataOptions);
 
-    this.state.plot.update(dataOptions);
+    this.setState({
+      plot: plot
+    })
+  }
+
+  isEmpty(obj) {
+    for(var key in obj) {
+        if(obj.hasOwnProperty(key))
+            return false;
+    }
+    return true;
   }
 
   render() {

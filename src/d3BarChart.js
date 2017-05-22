@@ -15,7 +15,7 @@ class D3BarChart {
 	constructor(DOMelt, width, height) {
 		this.DOMelt = DOMelt;
 		this.margins = {
-			L: 50,
+			L: 100,
 			R: 10,
 			T: 10,
 			B: 30
@@ -69,7 +69,7 @@ class D3BarChart {
 
 			bar.append("text")
 				.attr("transform", function(d, i) {return "translate(0," + BAR_HEIGHT/2 + ")"; })
-				.text(function(d) {return d.name;});
+				.text(function(d) {return d.name + " (Tissue type: " + d.tissue + ")";});
 	}
 }
 

@@ -15,14 +15,14 @@ class Graph extends Component {
     super(props);
 
     this.state = {
-      graphMounted: false
+      graphHasMounted: false
     }
 
     APICalls.getSNPData()
       .then(function(result) {
         this.setState({
           locationMap: this.getLocationMap(result.results),
-          SNPsByLocus: {},
+          SNPsByLocus: {}
         });
       }.bind(this));
   }
@@ -32,11 +32,15 @@ class Graph extends Component {
   // these are the SNPS to graph, which we pass in 
 
   componentWillReceiveProps(nextProps) {
-    if (this.isEmpty(nextProps.posteriorData)) {return;}
+    if (this.isEmpty(nextProps.posteriorData) && this.isEmpty(nextProps.priorData)) {return;} //return if no data available 
+
+    if (this.isEmpty(nextProps.posteriorData)) {
+      this.graphPriors(nextProps.priorData.priors);
+      return;
+    }
 
     var SNPMap = nextProps.posteriorData.posteriors;
-    //for posteriors, we care about "pobability"
-    var SNPList = this.transformSNPs(SNPMap);
+    var SNPList = this.transformSNPs(SNPMap); //adds position and rsid to snp object 
     var maxSNP = this.maxProbabilitySNP(SNPList, "probability");
     //now, get all SNPs at that locus
     var locusToGraph = maxSNP.locus;
@@ -46,11 +50,32 @@ class Graph extends Component {
 
     this.setState({
       locusToGraph: locusToGraph,
-      SNPsToGraph: SNPsAtLocus,
+      posteriorsToGraph: SNPsAtLocus,
       maxSNP: maxSNP,
-      graphMounted: true,
-      SNPsByLocus: byLocus,
+      posteriorsByLocus: byLocus,
       options: dropdownOptions
+    });
+  }
+
+  graphPriors(priors) {
+    console.log("priors", priors);
+    var SNPMap = priors;
+    var SNPList = this.transformSNPs(SNPMap);
+    var byLocus = this.sortSNPsByLocus(SNPList);
+    var locusToGraph = Object.getOwnPropertyNames(byLocus)[0]; //get the first locus
+    console.log("graphing priors: locus to graph is " + locusToGraph);
+    var SNPsAtLocus = byLocus[locusToGraph];
+    var dropdownOptions = this.getDropdownOptions(byLocus);
+
+    this.setState({
+      locusToGraph: locusToGraph,
+      priorsToGraph: SNPsAtLocus,
+      priorsByLocus: byLocus,
+      options: dropdownOptions,
+      graphHasMounted: true
+    }, function() {
+      console.log("updated state...");
+      console.log("updated priors" + this.state.priorsToGraph);
     });
   }
 
@@ -122,13 +147,16 @@ class Graph extends Component {
   }
 
   graphNewLocus(onChangeEvent) {
-    console.log("locus changed", event.target.value);
-    var locus = event.target.value;
-    var data = this.getSNPsAtLocus(locus);
-    console.log("data to display ", data);
+    console.log("locus changed", onChangeEvent.target.value);
+    var locus = onChangeEvent.target.value;
+
+    var newPriorSNPs = this.state.priorsByLocus ? this.state.priorsByLocus[locus] : [];
+    var newPosteriorSNPs = this.state.posteriorsByLocus ? this.state.posteriorsByLocus[locus] : [];
+
     this.setState({
       locusToGraph: locus,
-      SNPsToGraph: data
+      priorsToGraph: newPriorSNPs,
+      posteriorsToGraph: newPosteriorSNPs
     })
   }
 
@@ -175,23 +203,22 @@ class Graph extends Component {
     return (  
 
       <div>
-        {this.state.graphMounted &&
+        {this.state.graphHasMounted && 
           <div>
             <h1>Locus to graph: {this.state.locusToGraph}</h1>
-            <h1>Max SNP probability: {this.state.maxSNP.probability}</h1>
             <Dropdown
               options={this.state.options}
               defaultMessage={"Select a locus to view"} 
               onChange={this.graphNewLocus.bind(this)}
             />
             <GraphD3
-              SNPsToGraph={this.state.SNPsToGraph}
+              SNPsToGraph={this.state.priorsToGraph}
               xLabel={"SNPs at locus " + this.state.locusToGraph}
               yLabel="Priors"
-              yField= "prior"
+              yField= "probability"
             />
             <GraphD3
-              SNPsToGraph={this.state.SNPsToGraph}
+              SNPsToGraph={this.state.posteriorsToGraph}
               xLabel = {"SNPs at locus " + this.state.locusToGraph}
               yLabel = "PPAs"
               yField = "probability"

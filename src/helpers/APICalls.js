@@ -6,6 +6,7 @@ const GWAS_URL = BASE_URL + 'v0/gwasStudy';
 const ANNOTATIONS_URL = BASE_URL + 'v0/annotations';
 const SNPS_URL = BASE_URL + 'v0/snps';
 const PRIOR_URL = BASE_URL + 'v1/fineMapping/prior/basic'; 
+const RIVIERA_URL = BASE_URL + 'v1/fineMapping/prior/riviera';
 const POSTERIOR_URL = BASE_URL + 'v1/fineMapping/posterior/basic';
 const SNP_ANNOTATION_URL_ENDING = '/annotations';
 const TRAITS_URL = BASE_URL + 'v0/traits'; 
@@ -60,11 +61,11 @@ var APICalls = {
 		//if annotationIds is non-empty, add it as a trait
 		if (annotationIds != null && annotationIds.length && annotationIds.length > 0) {
 			data["annotationIds"] = annotationIds;
-		}
+		} 
 		console.log("data to post", data); 
 		return $.ajax({
 			contentType: 'application/json',
-			url: PRIOR_URL,
+			url: RIVIERA_URL,
 			type: 'POST',
 			data: JSON.stringify(data),
 			error: function(err) {

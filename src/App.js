@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import $ from 'jquery'; 
-import Loading from 'react-loading';
+import Waiting from './components/Waiting/component.js';
 import UserInp from './components/UserInp/component.js';
 import Graph from './components/Graph/component.js';
 import Riviera from './components/Riviera/component.js'; 
@@ -18,6 +18,7 @@ class App extends Component {
 			annotations: [],
 			selectedAnnotations: [],
 			resultsReady: false,
+			inputSubmitted: false,
 			//snps: [],
 			posteriorData: {}, 
 			priorData: {}
@@ -99,6 +100,7 @@ class App extends Component {
 	onSubmit(userSelections) {
 		console.log("Selected annotation at time of submit:", userSelections.selectedAnnotations);
 		this.setState({
+			inputSubmitted: true,
 			selectedGwas: userSelections.selectedGwas,
 			selectedAnnotations: userSelections.selectedAnnotations
 		}, function() {
@@ -150,11 +152,8 @@ class App extends Component {
 							weights={this.state.posteriorData.latentVariables.weights}
 					    />
 					</div>
-		    	) : (
-		    		<div>
-		    			<h2>Please wait while we do some calculations...</h2>
-		    			<Loading type="spin" color="grey" height="100px" width="100px"/>
-		    		</div>
+		    	) : ( 
+		    		<Waiting isVisible={this.state.inputSubmitted}/>
 		    	)
 
 	    return (
